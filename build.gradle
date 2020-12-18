@@ -1,0 +1,81 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.wisepersist:gwt-gradle-plugin:1.0.6'
+    }
+}
+
+plugins {
+    id 'java'
+    id 'idea'
+    id 'org.springframework.boot' version '2.0.1.RELEASE'
+    id 'com.github.ben-manes.versions' version '0.17.0'
+}
+
+apply plugin: 'gwt'
+apply plugin: 'io.spring.dependency-management'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+def GWT_VERSION = '2.8.2'
+ext['spock.version'] = '1.1'
+
+repositories {
+    jcenter()
+}
+
+sourceSets {
+    main.java.srcDir "src/main/java"
+    main.resources.srcDir "src/main/resources"
+    test.java.srcDir "src/test/java"
+//    test.groovy.srcDir "src/test/groovy"
+    test.resources.srcDir "src/test/resources"
+}
+
+dependencies {
+    compileOnly("com.google.gwt:gwt-user:${GWT_VERSION}")
+    compileOnly("com.google.gwt:gwt-dev:${GWT_VERSION}")
+    compileOnly('org.fusesource.restygwt:restygwt:2.2.3')
+//    compile group: 'org.springframework.hateoas', name: 'spring-hateoas', version: '1.2.0'
+    compile group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
+
+    compile('javax.ws.rs:javax.ws.rs-api:2.1')
+    compile('org.springframework.boot:spring-boot-starter-data-jpa')
+    compile('org.springframework.boot:spring-boot-starter-jetty') {
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
+    }
+    compile('org.springframework.boot:spring-boot-starter-web') {
+        exclude module: 'spring-boot-starter-tomcat'
+    }
+
+
+//    runtime (group: 'com.h2database', name: 'h2', version: '1.4.200')
+
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+
+    annotationProcessor('org.springframework.boot:spring-boot-configuration-processor')
+}
+
+wrapper {
+    gradleVersion = '5.6'
+}
+
+gwt {
+    gwtVersion = GWT_VERSION
+    modules 'com.mycompany.SpringBootGwt'
+    maxHeapSize = "1024M"
+}
+
+compileJava.dependsOn(processResources)
+
+bootJar.dependsOn compileGwt
+    bootJar {
+        baseName = 'spring-boot-gwt'
+        version = '1.0.0'
+
+        into('BOOT-INF/classes/static') {
+            from compileGwt.outputs
+        }
+}
